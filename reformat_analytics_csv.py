@@ -5,7 +5,7 @@ import csv, sys, re
 re_date = re.compile(r"^(\d+)/(\d+)/(\d+)$")
 def reformat_date(d):
     els = re_date.search(row[0]).groups()
-    return "%04d-%02d-%02d" % (int("20"+els[2]), int(els[1]), int(els[0]))
+    return "%04d-%02d-%02d" % (int("20"+els[2]), int(els[0]), int(els[1]))
 
 with open(sys.argv[1]) as f:
     for row in csv.reader(f):
