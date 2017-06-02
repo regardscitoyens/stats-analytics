@@ -6,5 +6,5 @@ Pour chaque site voulu :
 - cliquer sur Export
 - faire tourner le script de reformatage sur le fichier téléchargé, par exemple :
 ```bash
-./reformat_analytics_csv.py Analytics\ www.nosdeputes.fr\ Audience\ Overview\ 20090914-20170513.csv > nosdeputes.fr-20090914-20170513.csv
+./reformat_analytics_csv.py Analytics\ www.nosdeputes.fr\ Audience\ Overview\ 20090914-20170513.csv > NosDéputés.fr-20090914-20170513.csv
 ```
