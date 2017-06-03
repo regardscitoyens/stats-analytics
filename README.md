@@ -3,8 +3,8 @@
 Collects automatically daily stats (users, pageviews...) from Google Analytics monitored websites and version results in [`data`](data).
 
 - [RegardsCitoyens.org](https://github.com/regardscitoyens/stats-analytics/raw/master/data/RegardsCitoyens.org.csv)
-- [NosDéputés.fr](https://github.com/regardscitoyens/stats-analytics/raw/master/data/NosD%E9put%E9s.fr.csv)
-- [NosSénateurs.fr](https://github.com/regardscitoyens/stats-analytics/raw/master/data/NosS%E9nateurs.fr.csv)
+- [NosDéputés.fr](https://github.com/regardscitoyens/stats-analytics/raw/master/data/NosDéputés.fr.csv)
+- [NosSénateurs.fr](https://github.com/regardscitoyens/stats-analytics/raw/master/data/NosSénateurs.fr.csv)
 
 Data is redistributed as OpenData under ([ODbL licence](http://www.vvlibri.org/fr/licence/odbl/10/fr/legalcode)).
 
