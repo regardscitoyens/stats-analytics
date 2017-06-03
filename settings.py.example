@@ -1,0 +1,21 @@
+# -*- coding: utf-8 -*-
+
+FIELDS = ['users', 'pageviews']
+KEY_FILE_LOCATION = 'ga-api-credentials.json'
+VIEWS = [
+  {
+    "name": "RegardsCitoyens.org",
+    "id": "20994077",
+    "start": "2009-09-02"
+  },
+  {
+    "name": "NosDéputés.fr",
+    "id": "20995264",
+    "start": "2009-09-14"
+  },
+  {
+    "name": "NosSénateurs.fr",
+    "id": "50654957",
+    "start": "2011-09-22"
+  }
+]
