@@ -1,0 +1,125 @@
+<html>
+<head>
+ <meta charset="UTF-8">
+ <title>Évolution temporelle des visites sur les principaux sites de Regards Citoyens</title>
+ <script type="text/javascript" src="js/jquery.min.js"></script>
+ <script type="text/javascript" src="js/d3.js"></script>
+ <style>
+body {
+  margin: auto;
+}
+h1, h2, p {
+  font-size: 20px;
+  margin: 0 8px;
+}
+h2 {
+  text-align: left;
+  padding-left: 35px;
+}
+select {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+}
+svg {
+  margin-bottom: 20px;
+}
+.curve {
+  fill-opacity: 0.5;
+  stroke-opacity: 0.8;
+  stroke-width: 1px;
+  fill: steelblue;
+  stroke: steelblue;
+}
+.xaxis, .yaxis {
+  opacity: 0.5;
+}
+ </style>
+</head>
+
+<body>
+ <center>
+  <h1>Évolution temporelle des visites sur les principaux sites de Regards Citoyens</h1>
+  <select>
+    <option value="users" selected>Visiteurs</option>
+    <option value="pageviews">Pages vues</option>
+    <option value="ratio">Pages par visiteur</option>
+  </select>
+  <div id="graphs">
+  </div>
+  <p><a href="https://github.com/regardscitoyens/stats-analytics">télécharger les données</a></p>
+ </center>
+</body>
+
+<script type="text/javascript">
+d3.timeFormat = d3.timeFormatLocale({
+  "dateTime": "%A, le %e %B %Y, %X",
+  "date": "%d/%m/%Y",
+  "time": "%H:%M:%S",
+  "periods": ["AM", "PM"],
+  "days": ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"],
+  "shortDays": ["dim.", "lun.", "mar.", "mer.", "jeu.", "ven.", "sam."],
+  "months": ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"],
+  "shortMonths": ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."]
+}).format;
+$(document).ready(function() {
+  var height = 250,
+    width = window.innerWidth - 50,
+    xscale = d3.scaleLinear()
+      .range([20, width-55])
+      .domain([new Date("2009-09-02"), new Date()]),
+    yscale = d3.scaleLinear()
+      .range([height-25, 5]),
+    loadData = function(site){
+      d3.csv("data/"+site+".csv", function(d){
+        d.date = new Date(d.date);
+        d.users = parseInt(d.users);
+        d.pageviews = parseInt(d.pageviews);
+        d.ratio = d.pageviews / d.users;
+        return d;
+      }, function(data){
+        var div = d3.select("#graphs")
+          .append("div"),
+        h2 = div.append("h2").append("a")
+          .attr("href", "http://" + site)
+          .text(site),
+        svg = div.append("svg")
+          .style("width", width)
+          .style("height", height);
+        svg.append("g")
+          .attr("class", "xaxis")
+          .attr("transform", "translate(0,"+(height-20)+")")
+          .call(d3.axisBottom(xscale).ticks().tickFormat(d3.timeFormat("%b %y")));
+        ["users", "pageviews", "ratio"].forEach(function(key){
+          yscale.domain([0, d3.max(data.map(function(d){ return d[key]; }))]);
+          svg.append("path")
+            .attr("class", key + " curve")
+            .attr("d", d3.area()
+              .curve(d3.curveStep)
+              .x(function(d){ return xscale(d.date); })
+              .y1(function(d){ return yscale(d[key]); })
+              .y0(yscale(0))
+              (data)
+            );
+          svg.append("g")
+            .attr("class", key + " yaxis")
+            .attr("transform", "translate("+(width-50)+",0)")
+            .call(d3.axisRight(yscale).ticks());
+        });
+        show("users");
+      });
+    },
+    show = function(key){
+      $(".curve, .yaxis").hide();
+      $(".curve."+key+", .yaxis."+key).show();
+        console.log(key);
+    };
+  $("select").change(function(){
+    show(this.value);
+  });
+  loadData("RegardsCitoyens.org");
+  loadData("NosDéputés.fr");
+  loadData("NosSénateurs.fr");
+});
+</script>
+</html>
