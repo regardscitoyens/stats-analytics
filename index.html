@@ -114,8 +114,7 @@ $(document).ready(function() {
           ["users", "pageviews", "ratio"].forEach(function(key){
             var yscale = d3["scaleL" + view.slice(1)]()
               .range([height-25, 5])
-              .domain([(view === "log" ? 1 : 0), d3.max(data.map(function(d){ return d[key]; }))])
-              .nice();
+              .domain([(view === "log" ? 1 : 0), d3.max(data.map(function(d){ return d[key]; }))]);
             svg.append("path")
               .attr("class", view + " " + key + " curve")
               .attr("fill", color)
