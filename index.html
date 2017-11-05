@@ -18,8 +18,14 @@ h2 {
 }
 select {
   position: absolute;
-  top: 5px;
   right: 5px;
+  width: 120px;
+}
+#key {
+  top: 5px;
+}
+#view {
+  top: 25px;
 }
 svg {
   margin-bottom: 20px;
@@ -31,6 +37,9 @@ svg {
   fill: steelblue;
   stroke: steelblue;
 }
+.curve.log {
+  fill: none;
+}
 .xaxis, .yaxis {
   opacity: 0.5;
 }
@@ -40,10 +49,14 @@ svg {
 <body>
  <center>
   <h1>Évolution temporelle des visites sur les principaux sites de Regards Citoyens</h1>
-  <select>
+  <select id="key">
     <option value="users" selected>Visiteurs</option>
     <option value="pageviews">Pages vues</option>
     <option value="ratio">Pages par visiteur</option>
+  </select>
+  <select id="view">
+    <option value="linear" selected>linéaire</option>
+    <option value="log">logarithmique</option>
   </select>
   <div id="graphs">
   </div>
@@ -52,6 +65,12 @@ svg {
 </body>
 
 <script type="text/javascript">
+d3.formatDefaultLocale({
+  "decimal": ",",
+  "thousands": " ",
+  "grouping": [3],
+  "currency": ["€", ""],
+});
 d3.timeFormat = d3.timeFormatLocale({
   "dateTime": "%A, le %e %B %Y, %X",
   "date": "%d/%m/%Y",
@@ -68,8 +87,6 @@ $(document).ready(function() {
     xscale = d3.scaleLinear()
       .range([20, width-55])
       .domain([new Date("2009-09-02"), new Date()]),
-    yscale = d3.scaleLinear()
-      .range([height-25, 5]),
     loadData = function(site){
       d3.csv("data/"+site+".csv", function(d){
         d.date = new Date(d.date);
@@ -90,33 +107,41 @@ $(document).ready(function() {
           .attr("class", "xaxis")
           .attr("transform", "translate(0,"+(height-20)+")")
           .call(d3.axisBottom(xscale).ticks().tickFormat(d3.timeFormat("%b %y")));
-        ["users", "pageviews", "ratio"].forEach(function(key){
-          yscale.domain([0, d3.max(data.map(function(d){ return d[key]; }))]);
-          svg.append("path")
-            .attr("class", key + " curve")
-            .attr("d", d3.area()
-              .curve(d3.curveStep)
-              .x(function(d){ return xscale(d.date); })
-              .y1(function(d){ return yscale(d[key]); })
-              .y0(yscale(0))
-              (data)
-            );
-          svg.append("g")
-            .attr("class", key + " yaxis")
-            .attr("transform", "translate("+(width-50)+",0)")
-            .call(d3.axisRight(yscale).ticks());
+        ["linear", "log"].forEach(function(view){
+          ["users", "pageviews", "ratio"].forEach(function(key){
+            var yscale = d3["scaleL" + view.slice(1)]()
+              .range([height-25, 5])
+              .domain([(view === "log" ? 1 : 0), d3.max(data.map(function(d){ return d[key]; }))])
+              .nice();
+            svg.append("path")
+              .attr("class", view + " " + key + " curve")
+              .attr("d", d3.area()
+                .curve(d3.curveStep)
+                .x(function(d){ return xscale(d.date); })
+                .y1(function(d){ return yscale(d[key]); })
+                .y0(yscale(0))
+                (data)
+              );
+            svg.append("g")
+              .attr("class", view + " " + key + " yaxis")
+              .attr("transform", "translate("+(width-50)+",0)")
+              .call(d3.axisRight(yscale).ticks().tickFormat(view === "log" ? tickFormat : d3.format(",d")));
+          });
         });
-        show("users");
+        show();
       });
     },
-    show = function(key){
+    tickFormat = function(t) {
+      if (~["1","2","5"].indexOf((""+t).slice(0,1)))
+        return d3.format(",d")(t);
+    },
+    show = function(){
+      var key = "." + $("#key").val(),
+        view = "." + $("#view").val();
       $(".curve, .yaxis").hide();
-      $(".curve."+key+", .yaxis."+key).show();
-        console.log(key);
+      $(".curve"+key+view + ", .yaxis"+key+view).show();
     };
-  $("select").change(function(){
-    show(this.value);
-  });
+  $("select").change(show);
   loadData("RegardsCitoyens.org");
   loadData("NosDéputés.fr");
   loadData("NosSénateurs.fr");
