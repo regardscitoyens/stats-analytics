@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import sys
+from csv import reader
 from os import path, makedirs
 from datetime import datetime, timedelta
 from apiclient.discovery import build
@@ -27,17 +29,37 @@ datize = lambda d: "%s-%s-%s" % (d[0:4], d[4:6], d[6:8])
 def collect(analytics, view):
     stdate = datetime.strptime(view["start"], "%Y-%m-%d").date()
     eddate = datetime.today().date() + timedelta(days=-1)
-    with open(path.join("data", view["name"] + ".csv"), "w") as csvf:
-        print >> csvf, ",".join(["date"] + FIELDS)
-        # API returns maximum 1000 dates at once
-        while stdate < eddate:
-            st = stdate.isoformat()
-            ed = (min(eddate, stdate + timedelta(days=999))).isoformat()
-            stdate = stdate + timedelta(days=1000)
-            response = query(analytics, view["id"], st, ed)
+    csvfile = path.join("data", view["name"] + ".csv")
+    if path.exists(csvfile):
+        with open(csvfile, "r") as csvf:
+            olddata = list(reader(csvf))[1:]
+    data = []
+    # API returns maximum 1000 dates at once
+    while stdate < eddate:
+        st = stdate.isoformat()
+        ed = (min(eddate, stdate + timedelta(days=999))).isoformat()
+        stdate = stdate + timedelta(days=1000)
+        response = query(analytics, view["id"], st, ed)
+        try:
             for row in response["reports"][0]["data"]["rows"]:
                 results = [datize(row["dimensions"][0])] + row["metrics"][0]["values"]
-                print >> csvf, ",".join(results)
+                data.append(results)
+        except Exception as e:
+            print >> sys.stderr, "ERROR with", view, "from", st, "to", ed
+            print >> sys.stderr, "Data doesn't have rows", response
+    idx = 0
+    merged = []
+    for row in olddata:
+        if data[idx][0] > row[0]:
+            merged.append(row)
+        else:
+            merged.append(data[idx])
+            idx += 1
+    merged += data[idx:]
+    with open(csvfile, "w") as csvf:
+        print >> csvf, ",".join(["date"] + FIELDS)
+        for row in merged:
+            print >> csvf, ",".join(row)
 
 if __name__ == "__main__":
     if not path.exists("data"):
